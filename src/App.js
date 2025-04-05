@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/auth/LoginPage';
@@ -9,11 +9,11 @@ import ViolationEntryPage from './pages/police/ViolationEntryPage';
 import VehicleInfoPage from './pages/police/VehicleInfoPage';
 import ConfirmationPage from './pages/police/ConfirmationPage';
 import NotificationsPage from './pages/shared/NotificationsPage';
-import NotFoundPage from './pages/shared/NotFoundPage'; // Create this component
+import NotFoundPage from './pages/shared/NotFoundPage';
 
 function App() {
   return (
-    <Router basename={process.env.PUBLIC_URL}>
+    <Router>
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -35,17 +35,9 @@ function App() {
 function ProtectedRoute({ children, role }) {
   const { user, isAuthenticated, loading } = useAuth();
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (role && user?.role !== role) {
-    return <Navigate to={user?.role === 'police' ? '/police' : '/civil'} replace />;
-  }
+  if (loading) return <div>Loading...</div>;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (role && user?.role !== role) return <Navigate to={user?.role === 'police' ? '/police' : '/civil'} replace />;
 
   return children;
 }
