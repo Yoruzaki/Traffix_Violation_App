@@ -1,0 +1,12 @@
+{
+  "root": "build/",
+  "routes": {
+    "/**": "index.html"
+  },
+  "headers": {
+    "/**": {
+      "Cache-Control": "no-cache",
+      "Content-Security-Policy": "default-src 'self'"
+    }
+  }
+}
