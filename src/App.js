@@ -9,10 +9,11 @@ import ViolationEntryPage from './pages/police/ViolationEntryPage';
 import VehicleInfoPage from './pages/police/VehicleInfoPage';
 import ConfirmationPage from './pages/police/ConfirmationPage';
 import NotificationsPage from './pages/shared/NotificationsPage';
+import NotFoundPage from './pages/shared/NotFoundPage'; // Create this component
 
 function App() {
   return (
-    <Router>
+    <Router basename={process.env.PUBLIC_URL}>
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -24,6 +25,7 @@ function App() {
           <Route path="/civil" element={<ProtectedRoute role="civil"><CivilHomePage /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
           <Route path="/" element={<HomeRedirect />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AuthProvider>
     </Router>
