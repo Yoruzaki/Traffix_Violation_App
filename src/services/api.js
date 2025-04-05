@@ -3,7 +3,7 @@ import axios from 'axios';
 // Determine the base URL based on environment
 const isProduction = process.env.NODE_ENV === 'production';
 const baseURL = isProduction 
-  ? 'https://your-render-api-url.onrender.com'  // Your Render API URL
+  ? 'https://api-traffix.onrender.com'  // Your Render API URL
   : 'http://localhost:5000';                   // Local development
 
 const api = axios.create({
