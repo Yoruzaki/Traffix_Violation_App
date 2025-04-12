@@ -21,7 +21,10 @@ import {
   CardHeader,
   CardContent,
   Chip,
-  Alert
+  Alert,
+  Paper,
+  IconButton,
+  Divider
 } from '@mui/material';
 import { 
   LocalPolice, 
@@ -32,7 +35,10 @@ import {
   Event, 
   MonetizationOn,
   Cancel,
-  CheckCircle
+  CheckCircle,
+  AddPhotoAlternate,
+  Delete,
+  CloudUpload
 } from '@mui/icons-material';
 
 const ViolationEntryPage = () => {
@@ -42,28 +48,22 @@ const ViolationEntryPage = () => {
   // Form state
   const [formData, setFormData] = useState({
     license_plate: '',
-    violation_type: 'Select a Violation Type',
+    violation_type: '',
     location: '',
     violation_date: dayjs().format('YYYY-MM-DDTHH:mm'),
     fine_amount: '',
     insurance_policy: '',
-    notes: ''
+    notes: '',
+    photo: null
   });
   
+  const [previewImage, setPreviewImage] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   
   // Enhanced violation types with colors and descriptions
   const violationTypes = [
-    { 
-      value: 'Select a Violation Type', 
-      label: 'Select a Violation Type', 
-      fine_amount: 0, 
-      icon: <DirectionsCar />,
-      color: 'linear-gradient(135deg, #ff00f 0%, #ff9966 100%)',
-      description: 'Exceeding posted speed limits'
-    },
     { 
       value: 'speeding', 
       label: 'Speeding', 
@@ -140,6 +140,31 @@ const ViolationEntryPage = () => {
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // In a real app, you would upload this to your backend
+      // For now, we'll just create a preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+        setFormData(prev => ({
+          ...prev,
+          photo: file // In a real app, this would be handled differently
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setPreviewImage(null);
+    setFormData(prev => ({
+      ...prev,
+      photo: null
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -170,12 +195,18 @@ const ViolationEntryPage = () => {
     setSuccess('');
     
     try {
+      // In a real app, you would need to handle file upload separately
+      // This is just a mock implementation
       const payload = {
         ...formData,
         officer_id: user.id,
         fine_amount: parseFloat(formData.fine_amount),
-        violation_label: violationTypes.find(v => v.value === formData.violation_type)?.label || formData.violation_type
+        violation_label: violationTypes.find(v => v.value === formData.violation_type)?.label || formData.violation_type,
+        // photo_url: 'path/to/uploaded/image.jpg' // This would come from your backend after upload
       };
+      
+      // Remove the photo from payload since we're not actually uploading it
+      delete payload.photo;
       
       await api.post('/api/violations', payload);
       setSuccess('Violation recorded successfully!');
@@ -188,8 +219,10 @@ const ViolationEntryPage = () => {
         violation_date: dayjs().format('YYYY-MM-DDTHH:mm'),
         fine_amount: '',
         insurance_policy: '',
-        notes: ''
+        notes: '',
+        photo: null
       });
+      setPreviewImage(null);
       
     } catch (err) {
       console.error('Error recording violation:', err);
@@ -600,6 +633,83 @@ const ViolationEntryPage = () => {
                   }}
                 />
               </Grid>
+
+              {/* Photo Upload */}
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" fontWeight="500" mb={1}>
+                  Evidence Photo
+                </Typography>
+                <Paper
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    borderRadius: 1,
+                    borderStyle: 'dashed',
+                    borderColor: 'divider',
+                    backgroundColor: 'background.paper',
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      borderColor: 'primary.main',
+                      backgroundColor: 'action.hover'
+                    }
+                  }}
+                >
+                  <input
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    id="violation-photo-upload"
+                    type="file"
+                    onChange={handleImageChange}
+                  />
+                  <label htmlFor="violation-photo-upload">
+                    {previewImage ? (
+                      <Box sx={{ position: 'relative' }}>
+                        <Box
+                          component="img"
+                          src={previewImage}
+                          alt="Violation preview"
+                          sx={{
+                            maxWidth: '100%',
+                            maxHeight: 300,
+                            borderRadius: 1,
+                            border: '1px solid',
+                            borderColor: 'divider'
+                          }}
+                        />
+                        <IconButton
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeImage();
+                          }}
+                          sx={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            backgroundColor: 'error.main',
+                            color: 'white',
+                            '&:hover': {
+                              backgroundColor: 'error.dark'
+                            }
+                          }}
+                        >
+                          <Delete />
+                        </IconButton>
+                      </Box>
+                    ) : (
+                      <Box sx={{ py: 3 }}>
+                        <CloudUpload sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
+                        <Typography variant="body1" color="text.secondary">
+                          Click to upload or drag and drop
+                        </Typography>
+                        <Typography variant="body2" color="text.disabled" mt={1}>
+                          Upload a photo of the violation (JPEG, PNG, max 5MB)
+                        </Typography>
+                      </Box>
+                    )}
+                  </label>
+                </Paper>
+              </Grid>
               
               {/* Notes */}
               <Grid item xs={12}>
@@ -641,6 +751,11 @@ const ViolationEntryPage = () => {
                 />
               </Grid>
               
+              {/* Divider */}
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+              </Grid>
+              
               {/* Buttons */}
               <Grid item xs={12}>
                 <Box sx={{ 
@@ -654,7 +769,7 @@ const ViolationEntryPage = () => {
                     onClick={() => navigate('/police')}
                     sx={{ 
                       px: 4,
-                      py: 1,
+                      py: 1.5,
                       borderRadius: 1,
                       textTransform: 'none',
                       fontSize: '0.9375rem',
@@ -675,7 +790,7 @@ const ViolationEntryPage = () => {
                     disabled={loading}
                     sx={{ 
                       px: 4,
-                      py: 1,
+                      py: 1.5,
                       borderRadius: 1,
                       textTransform: 'none',
                       fontSize: '0.9375rem',
